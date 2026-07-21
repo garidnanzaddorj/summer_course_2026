@@ -1,0 +1,27 @@
+.ex4-box {
+  display: inline;
+  background-color: coral;
+  color: white;
+  padding: 10px;
+  margin-right: 10px;
+}
+.ex5-inline-block {
+  display: inline-block;
+  width: 250px;
+  height: 60px;
+  background-color: #ff7675;
+  color: white;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.ex5-block {
+  display: block;
+  width: 250px;
+  height: 60px;
+  background-color: #0984e3;
+  color: white;
+  padding: 10px;
+  box-sizing: border-box;
+  margin-top: 10px;
+}
