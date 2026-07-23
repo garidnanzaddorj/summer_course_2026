@@ -1,0 +1,35 @@
+.flex-container{
+    height: 800px;
+    width: 800px;
+    justify-content: space-between;
+
+}
+.flex01{
+    background-color: aquamarine;
+    height: 20px;
+    width: 100px;
+    
+    display: flex;
+}
+.flex02{
+    background-color: blanchedalmond;
+    height: 20px;
+    width: 100px;
+
+}
+.flex03{
+    background-color: blue;
+    height: 20px;
+    width: 100px;
+}
+.flex04{
+    background-color: blueviolet;
+    height: 20px;
+    width: 100px;
+
+}
+.flex05{
+    background-color: yellow;
+    height: 20px;
+    width: 100px;
+}

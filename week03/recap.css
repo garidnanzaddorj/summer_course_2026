@@ -1,0 +1,40 @@
+
+.flex-child{
+    height: 50px;
+    width: 50px;
+}
+
+.flex01{
+    background-color: brown;
+    height: 50;
+    width: 50;
+    text-align: center;
+    justify-content: center;
+    display: flex;
+    
+}
+.flex02{
+    background-color: pink;
+    height: 50;
+    width: 50;
+    text-align: center;
+}
+.flex03{
+    background-color: red;
+    height: 50;
+    width: 50;
+    text-align:center ;
+
+}
+.flex04{
+    background-color: yellow;
+    height: 50;
+    width: 50;
+    text-align: center;
+}
+.flex05{
+    background-color: green;
+    height: 50;
+    width: 50;
+    text-align: center;
+}
