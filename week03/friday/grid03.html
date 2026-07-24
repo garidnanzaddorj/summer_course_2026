@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .box{
+            background-color: #4e90e2;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .grid-equal{
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-equal">
+        <div class="box">1</div>
+        <div class="box">2</div>
+        <div class="box">3</div>
+        <div class="box">4</div>
+        <div class="box">5</div>
+        <div class="box">6</div>
+        
+
+    </div>
+    <h1>
+        Next Grid
+    </h1>
+    <div class="grid-equal">
+        <div class="box">Side info</div>
+        <div class="box">Right content</div>
+        <div class="box">add</div>
+    </div>
+
+    <h1>Next Grid</h1>
+    <div class="grid-mixed">
+        <header class="header">Head side (Whit stable height)</header>
+        <aside class="sidebar">Sidebar (Whit stable width)</aside>
+        <main class="content">basic side (Fill all basic space)</main>
+    </div>
+</body>
+</html>
