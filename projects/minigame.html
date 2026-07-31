@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catch the Stars!</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>Catch the Stars!</h1>
+
+  <div id="game-container">
+    <div id="scoreboard">
+      Score: <span id="score">0</span> | Lives: <span id="lives">3</span>
+    </div>
+
+    <div id="player"></div>
+
+    <div id="game-over">
+      <h2>Game Over</h2>
+      <p>Final Score: <span id="final-score">0</span></p>
+      <button id="restart-btn" onclick="restartGame()">Play Again</button>
+    </div>
+  </div>
+
+  <p class="instructions">Use <strong>Left</strong> and <strong>Right</strong> Arrow keys to move</p>
+
+  <script>
+    const container = document.getElementById('game-container');
+    const player = document.getElementById('player');
+    const scoreDisplay = document.getElementById('score');
+    const livesDisplay = document.getElementById('lives');
+    const gameOverScreen = document.getElementById('game-over');
+    const finalScoreDisplay = document.getElementById('final-score');
+
+    // Game Variables
+    let score = 0;
+    let lives = 3;
+    let playerX = 160;
+    const playerSpeed = 8;
+    const containerWidth = 400;
+    const playerWidth = 80;
+
+    let isLeftPressed = false;
+    let isRightPressed = false;
+    let gameInterval;
+    let spawnInterval;
+    let isGameOver = false;
+
+    // Listen for Controls
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') isLeftPressed = true;
+      if (e.key === 'ArrowRight') isRightPressed = true;
+    });
+
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowLeft') isLeftPressed = false;
+      if (e.key === 'ArrowRight') isRightPressed = false;
+    });
+
+    // Move Player
+    function updatePlayer() {
+      if (isLeftPressed && playerX > 0) {
+        playerX -= playerSpeed;
+      }
+      if (isRightPressed && playerX < containerWidth - playerWidth) {
+        playerX += playerSpeed;
+      }
+      player.style.left = playerX + 'px';
+    }
+
+    // Spawn Falling Objects
+    function createStar() {
+      if (isGameOver) return;
+
+      const star = document.createElement('div');
+      star.classList.add('star');
+      
+      // Random X position inside container
+      const startX = Math.floor(Math.random() * (containerWidth - 30));
+      star.style.left = startX + 'px';
+      
+      container.appendChild(star);
+
+      let starY = 0;
+      const fallSpeed = 3 + Math.random() * 3; // Random speed
+
+      const starInterval = setInterval(() => {
+        if (isGameOver) {
+          clearInterval(starInterval);
+          star.remove();
+          return;
+        }
+
+        starY += fallSpeed;
+        star.style.top = starY + 'px';
+
+        // Collision Check with Player
+        if (
+          starY >= 460 && starY <= 480 &&
+          startX + 24 >= playerX && startX <= playerX + playerWidth
+        ) {
+          score += 10;
+          scoreDisplay.textContent = score;
+          clearInterval(starInterval);
+          star.remove();
+        } 
+        // Missed Star (Reached Bottom)
+        else if (starY > 500) {
+          lives -= 1;
+          livesDisplay.textContent = lives;
+          clearInterval(starInterval);
+          star.remove();
+
+          if (lives <= 0) {
+            triggerGameOver();
+          }
+        }
+      }, 20);
+    }
+
+    // Main Game Loop
+    function gameLoop() {
+      if (!isGameOver) {
+        updatePlayer();
+        requestAnimationFrame(gameLoop);
+      }
+    }
+
+    // End Game
+    function triggerGameOver() {
+      isGameOver = true;
+      clearInterval(spawnInterval);
+      finalScoreDisplay.textContent = score;
+      gameOverScreen.style.display = 'flex';
+    }
+
+    // Restart Game
+    function restartGame() {
+      score = 0;
+      lives = 3;
+      playerX = 160;
+      isGameOver = false;
+
+      scoreDisplay.textContent = score;
+      livesDisplay.textContent = lives;
+      gameOverScreen.style.display = 'none';
+
+      // Remove remaining stars
+      const stars = document.querySelectorAll('.star');
+      stars.forEach(star => star.remove());
+
+      // Restart Loops
+      gameLoop();
+      spawnInterval = setInterval(createStar, 1000);
+    }
+
+    // Start Game
+    gameLoop();
+    spawnInterval = setInterval(createStar, 1000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+
+:root {
+  --primary-green: #67B044;
+  --primary-green-hover: #559636;
+  --dark-text: #2D3748;
+  --muted-text: #718096;
+  --bg-gray: #FAFAFA;
+  --white: #FFFFFF;
+  --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: var(--bg-gray);
+  color: var(--dark-text);
+  line-height: 1.6;
+}
+
+.btn {
+  display: inline-block;
+  padding: 8px 22px;
+  border-radius: 20px;
+  background-color: var(--primary-green);
+  color: var(--white);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+
+.btn:hover {
+  background-color: var(--primary-green-hover);
+}
+
+.btn-light {
+  background-color: var(--white);
+  color: var(--dark-text);
+  font-size: 0.85rem;
+}
+
+.btn-light:hover {
+  background-color: #E2E8F0;
+}
+
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 8%;
+  background-color: var(--white);
+}
+
+.logo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--dark-text);
+}
+
+.logo span {
+  font-weight: 400;
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: 25px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--muted-text);
+  font-size: 0.95rem;
+}
+
+.nav-links a.active, 
+.nav-links a:hover {
+  color: var(--dark-text);
+  font-weight: 600;
+}
+
+
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 50px;
+  padding: 60px 8%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.hero-avatar img {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.hero-content {
+  max-width: 450px;
+}
+
+.hero-content h1 {
+  font-size: 2.3rem;
+  line-height: 1.2;
+  color: #1A202C;
+  margin-bottom: 12px;
+}
+
+.hero-content p {
+  color: var(--muted-text);
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+
+.clients-section {
+  text-align: center;
+  padding: 40px 8% 80px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.clients-section h2 {
+  font-size: 2rem;
+  color: #1A202C;
+}
+
+.clients-section .subtitle {
+  color: var(--muted-text);
+  font-size: 0.9rem;
+  margin-top: 5px;
+  margin-bottom: 15px;
+}
+
+.mb-large {
+  margin-bottom: 50px;
+}
+
+.cards-grid {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.card {
+  background-color: var(--white);
+  border-radius: 12px;
+  padding: 0 25px 30px;
+  width: 280px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  margin-top: 40px;
+}
+
+.avatar-circle {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-top: -45px;
+  margin-bottom: 15px;
+  border: 3px solid var(--white);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+}
+
+.card-text {
+  font-size: 0.8rem;
+  color: var(--muted-text);
+  line-height: 1.5;
+  margin-bottom: 25px;
+}
+
+.card-role {
+  font-size: 0.75rem;
+  color: #A0AEC0;
+  margin-top: auto;
+}
+
+
+.footer {
+  background-color: var(--primary-green);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30px 10%;
+  color: var(--white);
+}
+
+.footer-graphic img {
+  height: 140px;
+  width: auto;
+  object-fit: contain;
+}
+
+.footer-info {
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+.footer-info h4 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.footer-info p {
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+.footer-info .address {
+  margin-bottom: 15px;
+}
+
+
+@media (max-width: 768px) {
+  .hero {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .navbar {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .footer {
+    flex-direction:column;
+    text-align: center;
+    gap: 20px;
+  }
+  .footer-info {
+    text-align: center;
+  }
+}  
