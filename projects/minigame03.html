@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Turbo Driver</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000;
+        }
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            pointer-events: none;
+        }
+        #speedometer {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: #00ffcc;
+            font-size: 32px;
+            font-weight: bold;
+            font-family: monospace;
+            text-shadow: 0 0 10px #00ffcc;
+            pointer-events: none;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <div id="ui">SCORE: <span id="score">0</span></div>
+    <div id="speedometer"><span id="speed">0</span> MPH</div>
+
+    <script>
+        // --- 1. SCENE SETUP ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a2e);
+        scene.fog = new THREE.FogExp2(0x1a1a2e, 0.015);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // --- 2. LIGHTING ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(20, 40, 20);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        // --- 3. ENVIRONMENT (ROAD & GROUND) ---
+        const roadWidth = 14;
+        const roadGeometry = new THREE.PlaneGeometry(roadWidth, 1000);
+        const roadMaterial = new THREE.MeshStandardMaterial({ color: 0x2c3e50, roughness: 0.8 });
+        const road = new THREE.Mesh(roadGeometry, roadMaterial);
+        road.rotation.x = -Math.PI / 2;
+        road.receiveShadow = true;
+        scene.add(road);
+
+        // Grass Borders
+        const grassGeo = new THREE.PlaneGeometry(200, 1000);
+        const grassMat = new THREE.MeshStandardMaterial({ color: 0x27ae60 });
+        const grass = new THREE.Mesh(grassGeo, grassMat);
+        grass.rotation.x = -Math.PI / 2;
+        grass.position.y = -0.01;
+        scene.add(grass);
+
+        // --- 4. PLAYER CAR CREATION ---
+        function createCar(color = 0xe94560) {
+            const carGroup = new THREE.Group();
+
+            // Car Body
+            const bodyGeo = new THREE.BoxGeometry(1.8, 0.8, 3.6);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: color, metalness: 0.5, roughness: 0.2 });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 0.6;
+            body.castShadow = true;
+            carGroup.add(body);
+
+            // Car Cabin
+            const cabinGeo = new THREE.BoxGeometry(1.4, 0.6, 1.8);
+            const cabinMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1 });
+            const cabin = new THREE.Mesh(cabinGeo, cabinMat);
+            cabin.position.set(0, 1.1, -0.2);
+            carGroup.add(cabin);
+
+            return carGroup;
+        }
+
+        const playerCar = createCar(0xe94560);
+        playerCar.position.set(0, 0, 0);
+        scene.add(playerCar);
+
+        // --- 5. CONTROLS & PHYSICS STATE ---
+        const keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false, a: false, d: false, w: false, s: false };
+        let speed = 0;
+        const maxSpeed = 0.8;
+        const accel = 0.015;
+        const friction = 0.008;
+        let score = 0;
+
+        window.addEventListener('keydown', e => keys[e.key] = true);
+        window.addEventListener('keyup', e => keys[e.key] = false);
+
+        // --- 6. OBSTACLE TRAFFIC ---
+        const obstacles = [];
+        function spawnObstacle() {
+            if (Math.random() < 0.03) {
+                const obstacle = createCar(0x0984e3);
+                const laneX = (Math.random() - 0.5) * (roadWidth - 3);
+                obstacle.position.set(laneX, 0, playerCar.position.z - 150);
+                scene.add(obstacle);
+                obstacles.push(obstacle);
+            }
+        }
+
+        // --- 7. MAIN GAME LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Acceleration & Deceleration
+            if (keys.ArrowUp || keys.w) speed = Math.min(speed + accel, maxSpeed);
+            else if (keys.ArrowDown || keys.s) speed = Math.max(speed - accel, -maxSpeed / 2);
+            else {
+                if (speed > 0) speed = Math.max(0, speed - friction);
+                if (speed < 0) speed = Math.min(0, speed + friction);
+            }
+
+            // Steering
+            if (keys.ArrowLeft || keys.a) playerCar.position.x -= 0.15;
+            if (keys.ArrowRight || keys.d) playerCar.position.x += 0.15;
+
+            // Keep player on road limits
+            playerCar.position.x = Math.max(-roadWidth / 2 + 1, Math.min(roadWidth / 2 - 1, playerCar.position.x));
+
+            // Move car forward along Z axis
+            playerCar.position.z -= speed;
+
+            // Camera follow logic
+            camera.position.set(playerCar.position.x, playerCar.position.y + 4, playerCar.position.z + 10);
+            camera.lookAt(playerCar.position.x, playerCar.position.y + 1, playerCar.position.z - 5);
+
+            // Move Road endlessly with player
+            road.position.z = playerCar.position.z - 200;
+            grass.position.z = playerCar.position.z - 200;
+
+            // Spawning & Updating Obstacles
+            spawnObstacle();
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obs = obstacles[i];
+                
+                // Collision Detection
+                const dist = playerCar.position.distanceTo(obs.position);
+                if (dist < 2.5) {
+                    speed = 0; // Crash penalty
+                }
+
+                // Clean up far away obstacles
+                if (obs.position.z > playerCar.position.z + 20) {
+                    scene.remove(obs);
+                    obstacles.splice(i, 1);
+                }
+            }
+
+            // UI Updates
+            score += Math.floor(speed * 10);
+            document.getElementById('score').innerText = score;
+            document.getElementById('speed').innerText = Math.floor(speed * 160);
+
+            renderer.render(scene, camera);
+        }
+
+        // Handle Window Resizing
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
