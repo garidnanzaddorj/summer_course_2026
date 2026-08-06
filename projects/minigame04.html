@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Cyber Runner</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Orbitron', 'Segoe UI', sans-serif;
+            background-color: #050510;
+            color: #fff;
+            user-select: none;
+        }
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            pointer-events: none;
+            color: #00f0ff;
+            text-shadow: 0 0 10px #00f0ff;
+        }
+        #coins-count {
+            color: #ffe600;
+            text-shadow: 0 0 10px #ffe600;
+            margin-left: 15px;
+        }
+        #game-over {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(10, 10, 25, 0.9);
+            padding: 40px 60px;
+            border-radius: 20px;
+            border: 2px solid #ff0055;
+            box-shadow: 0 0 30px rgba(ff, 0, 85, 0.5);
+        }
+        #game-over h1 {
+            font-size: 42px;
+            color: #ff0055;
+            margin: 0 0 10px 0;
+            text-shadow: 0 0 15px #ff0055;
+        }
+        #game-over button {
+            background: linear-gradient(45deg, #ff0055, #ff5500);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+            transition: 0.2s;
+        }
+        #game-over button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(255, 0, 85, 0.8);
+        }
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 15px;
+            background: rgba(5, 5, 20, 0.7);
+            padding: 10px 25px;
+            border-radius: 20px;
+            border: 1px solid #00f0ff;
+            color: #a0f0ff;
+            pointer-events: none;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <div id="ui">
+        ОНОО: <span id="score">0</span>
+        <span id="coins-count">💎 <span id="gems">0</span></span>
+    </div>
+
+    <div id="game-over">
+        <h1>GAME OVER</h1>
+        <p style="font-size: 20px;">Эцсийн оноо: <span id="final-score" style="color:#00f0ff;">0</span></p>
+        <p style="font-size: 18px;">Цуглуулсан эрдэнэс: <span id="final-gems" style="color:#ffe600;">0</span></p>
+        <button onclick="restartGame()">ДАХИН ЭХЛЭХ</button>
+    </div>
+
+    <div id="instructions">⬅️ ➡️ Зам солих | ⬆️ Эсвэл Space: Үсрэх</div>
+
+    <script>
+        // --- 1. SETUP SCENE ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x050515);
+        scene.fog = new THREE.FogExp2(0x050515, 0.015);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // Light
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0x00f0ff, 1.2);
+        dirLight.position.set(0, 20, 10);
+        scene.add(dirLight);
+
+        const pointLight = new THREE.PointLight(0xff0055, 2, 50);
+        pointLight.position.set(0, 5, -10);
+        scene.add(pointLight);
+
+        // --- 2. GAME VARIABLES ---
+        let score = 0;
+        let gems = 0;
+        let speed = 0.5;
+        let isGameOver = false;
+        const lanes = [-3, 0, 3];
+        let currentLane = 1;
+        
+        // Player Physics
+        let playerY = 0.6;
+        let jumpVelocity = 0;
+        let isJumping = false;
+        const gravity = -0.018;
+
+        // --- 3. ENVIRONMENT ---
+        // Neon Grid Road
+        const roadGeo = new THREE.PlaneGeometry(12, 300);
+        const roadMat = new THREE.MeshStandardMaterial({ 
+            color: 0x0a0a20, 
+            roughness: 0.2, 
+            metalness: 0.8 
+        });
+        const road = new THREE.Mesh(roadGeo, roadMat);
+        road.rotation.x = -Math.PI / 2;
+        road.position.z = -100;
+        scene.add(road);
+
+        // Lane Lines
+        for(let x of [-1.5, 1.5]) {
+            const lineGeo = new THREE.PlaneGeometry(0.1, 300);
+            const lineMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+            const line = new THREE.Mesh(lineGeo, lineMat);
+            line.rotation.x = -Math.PI / 2;
+            line.position.set(x, 0.01, -100);
+            scene.add(line);
+        }
+
+        // --- 4. PLAYER (Cyber Rover) ---
+        function createPlayer() {
+            const group = new THREE.Group();
+            
+            // Body
+            const bodyGeo = new THREE.BoxGeometry(1.2, 0.6, 2);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, emissive: 0x005577 });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 0.5;
+            group.add(body);
+
+            // Cockpit
+            const topGeo = new THREE.SphereGeometry(0.5, 16, 16);
+            const topMat = new THREE.MeshStandardMaterial({ color: 0xff0055, emissive: 0x550022 });
+            const top = new THREE.Mesh(topGeo, topMat);
+            top.position.set(0, 0.8, -0.2);
+            group.add(top);
+
+            // Glow Engines
+            const engineGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.4);
+            const engineMat = new THREE.MeshBasicMaterial({ color: 0xff0055 });
+            const engineLeft = new THREE.Mesh(engineGeo, engineMat);
+            engineLeft.rotation.x = Math.PI / 2;
+            engineLeft.position.set(-0.4, 0.5, 1);
+            group.add(engineLeft);
+
+            const engineRight = engineLeft.clone();
+            engineRight.position.x = 0.4;
+            group.add(engineRight);
+
+            return group;
+        }
+
+        const player = createPlayer();
+        player.position.set(lanes[currentLane], playerY, 0);
+        scene.add(player);
+
+        camera.position.set(0, 4, 7);
+        camera.lookAt(0, 1.5, -5);
+
+        // --- 5. OBSTACLES & GEMS ---
+        const obstacles = [];
+        const gemList = [];
+
+        function spawnObstacle() {
+            const laneIndex = Math.floor(Math.random() * 3);
+            const isTall = Math.random() > 0.6; // Кабель эсвэл хашилт
+
+            const geo = isTall ? new THREE.BoxGeometry(2.2, 2.5, 0.8) : new THREE.BoxGeometry(2.2, 0.8, 0.8);
+            const mat = new THREE.MeshStandardMaterial({ 
+                color: 0xff0055, 
+                emissive: 0x330011,
+                roughness: 0.3
+            });
+            const mesh = new THREE.Mesh(geo, mat);
+            
+            const posY = isTall ? 1.25 : 0.4;
+            mesh.position.set(lanes[laneIndex], posY, -120);
+            scene.add(mesh);
+            obstacles.push(mesh);
+        }
+
+        function spawnGem() {
+            const laneIndex = Math.floor(Math.random() * 3);
+            const geo = new THREE.OctahedronGeometry(0.4);
+            const mat = new THREE.MeshStandardMaterial({ color: 0xffe600, emissive: 0x887700 });
+            const gem = new THREE.Mesh(geo, mat);
+            
+            const high = Math.random() > 0.5;
+            gem.position.set(lanes[laneIndex], high ? 2.2 : 0.8, -120);
+            scene.add(gem);
+            gemList.push(gem);
+        }
+
+        // --- 6. CONTROLS ---
+        window.addEventListener('keydown', (e) => {
+            if (isGameOver) return;
+
+            if ((e.key === 'ArrowLeft' || e.key === 'a') && currentLane > 0) {
+                currentLane--;
+            } else if ((e.key === 'ArrowRight' || e.key === 'd') && currentLane < 2) {
+                currentLane++;
+            } else if ((e.key === 'ArrowUp' || e.key === ' ' || e.key === 'w') && !isJumping) {
+                isJumping = true;
+                jumpVelocity = 0.35;
+            }
+        });
+
+        // --- 7. GAME LOOP ---
+        let timer = 0;
+
+        function animate() {
+            if (isGameOver) return;
+
+            requestAnimationFrame(animate);
+
+            timer++;
+            score += 1;
+            document.getElementById('score').innerText = Math.floor(score / 5);
+
+            // Speed scaling
+            if (timer % 300 === 0) speed += 0.03;
+
+            // Player Horizontal Smooth Movement
+            player.position.x += (lanes[currentLane] - player.position.x) * 0.25;
+
+            // Player Jump Physics
+            if (isJumping) {
+                player.position.y += jumpVelocity;
+                jumpVelocity += gravity;
+                if (player.position.y <= playerY) {
+                    player.position.y = playerY;
+                    isJumping = false;
+                }
+            }
+
+            // Spawn Spawners
+            if (timer % Math.max(25, Math.floor(60 - speed * 20)) === 0) {
+                if (Math.random() > 0.3) spawnObstacle();
+                else spawnGem();
+            }
+
+            // Update Obstacles
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obs = obstacles[i];
+                obs.position.z += speed;
+
+                // Collision Detection
+                const dx = Math.abs(player.position.x - obs.position.x);
+                const dy = Math.abs(player.position.y - obs.position.y);
+                const dz = Math.abs(player.position.z - obs.position.z);
+
+                if (dx < 1.2 && dz < 1.0 && dy < (obs.geometry.parameters.height / 2 + 0.3)) {
+                    endGame();
+                }
+
+                if (obs.position.z > 10) {
+                    scene.remove(obs);
+                    obstacles.splice(i, 1);
+                }
+            }
+
+            // Update Gems
+            for (let i = gemList.length - 1; i >= 0; i--) {
+                const gem = gemList[i];
+                gem.position.z += speed;
+                gem.rotation.y += 0.05;
+
+                // Pickup Gem
+                const dist = player.position.distanceTo(gem.position);
+                if (dist < 1.3) {
+                    gems += 1;
+                    document.getElementById('gems').innerText = gems;
+                    scene.remove(gem);
+                    gemList.splice(i, 1);
+                    continue;
+                }
+
+                if (gem.position.z > 10) {
+                    scene.remove(gem);
+                    gemList.splice(i, 1);
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function endGame() {
+            isGameOver = true;
+            document.getElementById('final-score').innerText = Math.floor(score / 5);
+            document.getElementById('final-gems').innerText = gems;
+            document.getElementById('game-over').style.display = 'block';
+        }
+
+        function restartGame() {
+            obstacles.forEach(o => scene.remove(o));
+            gemList.forEach(g => scene.remove(g));
+            obstacles.length = 0;
+            gemList.length = 0;
+
+            score = 0;
+            gems = 0;
+            speed = 0.5;
+            currentLane = 1;
+            isGameOver = false;
+
+            document.getElementById('score').innerText = '0';
+            document.getElementById('gems').innerText = '0';
+            document.getElementById('game-over').style.display = 'none';
+
+            animate();
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
