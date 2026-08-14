@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TYLER-PROFILE</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div style="width: 510px;height: 190px;"class="card">
+<img src="./Vector 6.png" class="layer layer-1"style="position:relative;z-index: 100;top:30px;z-index: 10;">
+<img src="./Vector 1.svg" class="layer layer-2"style="position: relative;z-index: 90;top: -90px;">
+<img src="./Vector 2.png" class="layer layer-3"style="position:relative;z-index: 80;top:-250px">
+<img src="./Vector 3.png" class="layer layer-4" style="position: relative;z-index: 80;top: -500px;">
+<img src="./Vector 5.png" class="layer layer-5" style="position: relative;z-index: 80;top: -550px;">
+
+  <div class="card-container">
+    <div class="card-banner"></div>
+
+    <div class="profile-avatar">
+      <img src="tyler.jpeg" alt="Tyler">
+    </div>
+
+    <div class="card-content">
+      <h1 class="user-name">Tyler, The creator</h1>
+      <p class="user-handle">@tylerokonma</p>
+
+      <div class="social-icons">
+        <a href="https://www.facebook.com/TylerTheCreator/" class="icon"><i class="fa-brands fa-facebook-f"></i></a>
+        <a href="#" class="icon"><i class="fa-brands fa-linkedin-in"></i></a>
+        <a href="https://x.com/tylerthecreator?lang=en" class="icon"><i class="fa-brands fa-x-twitter"></i></a>
+        <a href="https://www.instagram.com/feliciathegoat/?hl=en" class="icon"><i class="fa-brands fa-instagram"></i></a>
+        <a href="#" class="icon"><i class="fa-brands fa-dribbble"></i></a>
+      </div>
+
+      <p class="user-bio">
+       I make cool shit, direct the visual vision, shoot fire portraits, and build brand worlds so people actually give a damn.
+      </p>
+
+      <div class="action-buttons">
+        <a href="https://instagram.com/tylerokonma" target="_blank" class="btn btn-primary">Follow</a>
+        <a href="https://ig.me/m/tylerokonma" target="_blank" class="btn btn-secondary">Message</a>
+      </div>
+    </div>
+  </div>
+  <script>
+  const followBtn = document.getElementById('followBtn');
+
+  followBtn.addEventListener('click', function() {
+    this.classList.add('followed');
+    this.textContent = 'Followed';
+  });
+</script>
+
+</body>
+</html>
+
+

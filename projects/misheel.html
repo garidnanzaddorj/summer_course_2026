@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2 Тоглогчийн Тоглоом</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+
+    .instructions {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
+    .p1-color { color: #38bdf8; font-weight: bold; }
+    .p2-color { color: #f43f5e; font-weight: bold; }
+
+    #gameCanvas {
+      background-color: #1e293b;
+      border: 3px solid #334155;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+
+    .score-board {
+      margin-top: 15px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🏃 2 Тоглогчийн Тэмцээний Арена 🏃</h1>
+
+  <div class="instructions">
+    <div><span class="p1-color">Тоглогч 1 (Цэнхэр):</span> W, A, S, D</div>
+    <div><span class="p2-color">Тоглогч 2 (Улаан):</span> Сумтай товчлуурууд</div>
+  </div>
+
+  <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+  <div class="score-board">
+    <span class="p1-color">P1 Оноо: <span id="p1Score">0</span></span> | 
+    <span class="p2-color">P2 Оноо: <span id="p2Score">0</span></span>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const p1ScoreEl = document.getElementById('p1Score');
+    const p2ScoreEl = document.getElementById('p2Score');
+
+    let p1Score = 0;
+    let p2Score = 0;
+
+    // Тоглогч 1 (W,A,S,D)
+    const p1 = {
+      x: 50,
+      y: 180,
+      size: 30,
+      color: '#38bdf8',
+      speed: 4
+    };
+
+    // Тоглогч 2 (Сумнууд)
+    const p2 = {
+      x: 520,
+      y: 180,
+      size: 30,
+      color: '#f43f5e',
+      speed: 4
+    };
+
+    // Цуглуулах шар зоос
+    const coin = {
+      x: 290,
+      y: 190,
+      size: 15,
+      color: '#facc15'
+    };
+
+    // Гарны даралтуудыг хянах
+    const keys = {};
+
+    window.addEventListener('keydown', (e) => {
+      keys[e.key] = true;
+    });
+
+    window.addEventListener('keyup', (e) => {
+      keys[e.key] = false;
+    });
+
+    // Зоос шинэ газарт гараж ирэх
+    function respawnCoin() {
+      coin.x = Math.floor(Math.random() * (canvas.width - 40)) + 20;
+      coin.y = Math.floor(Math.random() * (canvas.height - 40)) + 20;
+    }
+
+    // Мөргөлдөөн шалгах
+    function checkCollision(player, target) {
+      return (
+        player.x < target.x + target.size &&
+        player.x + player.size > target.x &&
+        player.y < target.y + target.size &&
+        player.y + player.size > target.y
+      );
+    }
+
+    // Хөдөлгөөн болон логик
+    function update() {
+      // Тоглогч 1 хөдөлгөөн (W, A, S, D / w, a, s, d)
+      if ((keys['w'] || keys['W']) && p1.y > 0) p1.y -= p1.speed;
+      if ((keys['s'] || keys['S']) && p1.y < canvas.height - p1.size) p1.y += p1.speed;
+      if ((keys['a'] || keys['A']) && p1.x > 0) p1.x -= p1.speed;
+      if ((keys['d'] || keys['D']) && p1.x < canvas.width - p1.size) p1.x += p1.speed;
+
+      // Тоглогч 2 хөдөлгөөн (Arrow keys)
+      if (keys['ArrowUp'] && p2.y > 0) p2.y -= p2.speed;
+      if (keys['ArrowDown'] && p2.y < canvas.height - p2.size) p2.y += p2.speed;
+      if (keys['ArrowLeft'] && p2.x > 0) p2.x -= p2.speed;
+      if (keys['ArrowRight'] && p2.x < canvas.width - p2.size) p2.x += p2.speed;
+
+      // Зоос авах шалгалт
+      if (checkCollision(p1, coin)) {
+        p1Score++;
+        p1ScoreEl.innerText = p1Score;
+        respawnCoin();
+      }
+
+      if (checkCollision(p2, coin)) {
+        p2Score++;
+        p2ScoreEl.innerText = p2Score;
+        respawnCoin();
+      }
+    }
+
+    // Дэлгэц дээр зурах
+    function draw() {
+      // Дэлгэцийг цэвэрлэх
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Тоглогч 1 зурах
+      ctx.fillStyle = p1.color;
+      ctx.fillRect(p1.x, p1.y, p1.size, p1.size);
+
+      // Тоглогч 2 зурах
+      ctx.fillStyle = p2.color;
+      ctx.fillRect(p2.x, p2.y, p2.size, p2.size);
+
+      // Шар зоос зурах
+      ctx.fillStyle = coin.color;
+      ctx.beginPath();
+      ctx.arc(coin.x + coin.size / 2, coin.y + coin.size / 2, coin.size / 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Тоглоомын гол давталт (Game Loop)
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+
+</body>
+</html>
