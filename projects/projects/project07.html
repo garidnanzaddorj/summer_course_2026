@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini Traffic Simulator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 20px;
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    h1 {
+      margin: 0 0 10px 0;
+      color: #38bdf8;
+      font-size: 2rem;
+    }
+    .instructions {
+      background-color: #1e293b;
+      padding: 12px 20px;
+      border-radius: 8px;
+      border-left: 4px solid #38bdf8;
+      margin: 0 auto 15px auto;
+      max-width: 800px;
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    button:hover {
+      opacity: 0.9;
+      transform: scale(1.05);
+    }
+    .btn-red { background-color: #ef4444; color: white; }
+    .btn-yellow { background-color: #eab308; color: black; }
+    .btn-green { background-color: #22c55e; color: white; }
+    #canvas-container {
+      box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.6);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid #334155;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Mini Traffic Simulator 🚦</h1>
+    <p class="instructions">
+      💡 <strong>Заавар:</strong> Товчлуурууд дээр дарж гэрлэн дохионы төлөвийг өөрчилнө үү.<br>
+      • <strong>RED:</strong> Машинууд зогсох шугам дээр зогсоно.<br>
+      • <strong>YELLOW:</strong> Шугамнаас цааш гарсан машинууд хөдөлгөөнөө үргэлжлүүлнэ.<br>
+      • <strong>GREEN:</strong> Бүх машинууд чөлөөтэй хөдөлнө.
+    </p>
+  </header>
+
+  <div class="controls">
+    <button class="btn-red" onclick="setLight('red')">RED 🔴</button>
+    <button class="btn-yellow" onclick="setLight('yellow')">YELLOW 🟡</button>
+    <button class="btn-green" onclick="setLight('green')">GREEN 🟢</button>
+  </div>
+
+  <main id="canvas-container"></main>
+
+  <script>
+    let trafficLight = "red";
+    let cars = [];
+    const stopLineX = 520;
+
+    function setup() {
+      let canvas = createCanvas(800, 400);
+      canvas.parent('canvas-container');
+
+      for (let i = 0; i < 5; i++) {
+        cars.push({
+          x: -i * 130 - 60,
+          y: 220,
+          speed: random(2, 4),
+          color: color(random(100, 255), random(50, 200), random(100, 255))
+        });
+      }
+    }
+
+    function draw() {
+      background(34, 139, 34);
+
+      drawRoad();
+      drawTrafficLight();
+
+      for (let car of cars) {
+        drawCar(car);
+        updateCar(car);
+      }
+    }
+
+    function drawRoad() {
+      fill(50);
+      noStroke();
+      rect(0, 150, width, 160);
+
+      stroke(255);
+      strokeWeight(3);
+      for (let x = 0; x < width; x += 40) {
+        line(x, 230, x + 20, 230);
+      }
+
+      stroke(255, 255, 0);
+      strokeWeight(6);
+      line(stopLineX, 155, stopLineX, 305);
+    }
+
+    function drawTrafficLight() {
+      push();
+      rectMode(CENTER);
+      fill(30);
+      noStroke();
+      rect(stopLineX + 40, 90, 40, 100, 8);
+      rect(stopLineX + 40, 150, 10, 40);
+
+      fill(trafficLight === "red" ? color(255, 0, 0) : color(80, 0, 0));
+      ellipse(stopLineX + 40, 60, 22);
+
+      fill(trafficLight === "yellow" ? color(255, 255, 0) : color(80, 80, 0));
+      ellipse(stopLineX + 40, 90, 22);
+
+      fill(trafficLight === "green" ? color(0, 255, 0) : color(0, 80, 0));
+      ellipse(stopLineX + 40, 120, 22);
+
+      pop();
+    }
+
+    function drawCar(car) {
+      push();
+      noStroke();
+
+      fill(car.color);
+      rect(car.x, car.y, 60, 30, 5);
+
+      fill(200, 230, 255);
+      rect(car.x + 15, car.y + 5, 30, 20, 3);
+
+      fill(10);
+      rect(car.x + 8, car.y - 4, 12, 6);
+      rect(car.x + 40, car.y - 4, 12, 6);
+      rect(car.x + 8, car.y + 28, 12, 6);
+      rect(car.x + 40, car.y + 28, 12, 6);
+
+      pop();
+    }
+
+    function updateCar(car) {
+      let carFront = car.x + 60;
+
+      if ((trafficLight === "red" || trafficLight === "yellow") && carFront <= stopLineX && carFront + car.speed >= stopLineX) {
+        car.x = stopLineX - 60;
+      } else if (trafficLight === "red" && carFront === stopLineX) {
+        car.x = stopLineX - 60;
+      } else {
+        car.x += car.speed;
+      }
+
+      if (car.x > width) {
+        car.x = -80;
+      }
+    }
+
+    function setLight(state) {
+      trafficLight = state;
+    }
+  </script>
+</body>
+</html>

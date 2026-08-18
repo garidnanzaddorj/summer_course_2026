@@ -1,0 +1,40 @@
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #34495e;
+    color: #112937;
+    text-align: center;
+}
+
+h1 {
+    margin-top: 35px;
+}
+
+.controls {
+    width: 600px;
+    max-width: 90%;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+.controls input,
+.controls select {
+    cursor: pointer;
+}
+
+#canvas-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+canvas {
+    border: 2px solid #112937;
+    border-radius: 12px;
+}
